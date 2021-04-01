@@ -23,7 +23,6 @@ const (
 
 func main() {
 	dbStr := "postgres://" + userName + ":" + password + "@" + host + ":" + port + "/" + dbname + "?" + "sslmode=disable"
-	fmt.Println(dbStr)
 	db, err := sqlx.Connect("postgres", dbStr)
 	if err != nil {
 		fmt.Println("failed to connect to db")

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -39,11 +40,42 @@ func (s *store) GetUserByID(id int) (User, error) {
 }
 
 func (s *store) SaveUserByID(u User, str string) error {
-
 	_, err := s.DB.NamedExec(`INSERT INTO users(id, data) VALUES(:id, :data)`,
 		map[string]interface{}{
 			"id":   u.ID,
 			"data": str,
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *store) UpdateUserByID(id int, field, value string, user User) error {
+	b := []byte(user.Data)
+	var d Data
+	err := json.Unmarshal(b, &d)
+	if err != nil {
+		return err
+	}
+	switch field {
+	case "{first_name}":
+		d.FirstName = value[1 : len(value)-1]
+	case "{last_name}":
+		d.LastName = value[1 : len(value)-1]
+	case "{interests}":
+		d.Interests = value[1 : len(value)-1]
+	}
+
+	str, err := json.Marshal(d)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(str))
+	_, err = s.DB.NamedExec(`UPDATE users SET data=:data WHERE id=:id`,
+		map[string]interface{}{
+			"id":   id,
+			"data": string(str),
 		})
 	if err != nil {
 		return err

@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
@@ -30,11 +29,11 @@ func NewService(store *store, db *sqlx.DB, e *echo.Echo) *echo.Echo {
 func (s *Service) getUser(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(400, err)
+		return c.String(400, "bad id request")
 	}
 	result, err := s.store.GetUserByID(id)
 	if err != nil {
-		c.JSON(500, err)
+		c.String(500, "failed to get user by ID")
 	}
 	return c.JSON(200, result)
 }
@@ -42,23 +41,23 @@ func (s *Service) getUser(c echo.Context) error {
 func (s *Service) saveUser(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(404, err)
+		return c.String(404, "bad id request")
 	}
 	u := &User{}
 	d := &Data{}
 	u.ID = id
 	if err := c.Bind(&d); err != nil {
-		return c.JSON(400, err)
+		return c.String(400, "failed to bind")
 	}
 	b, err := json.Marshal(d)
 	if err != nil {
-		return c.JSON(500, err)
+		return c.String(500, "failed to Marshal json")
 	}
 	str := string(b)
 	u.Data = str
 	err = s.store.SaveUserByID(*u, str)
 	if err != nil {
-		return c.JSON(500, err)
+		return c.String(500, "failed to save user")
 	}
 	return c.JSON(201, u)
 }
@@ -70,6 +69,10 @@ func (s *Service) updateUser(c echo.Context) error {
 	}
 	field := c.QueryParam("field")
 	value := c.QueryParam("value")
-	fmt.Println(id, field, value)
+	user, _ := s.store.GetUserByID(id)
+	err = s.store.UpdateUserByID(id, field, value, user)
+	if err != nil {
+		return c.String(500, "failed to update user by ID")
+	}
 	return nil
 }
