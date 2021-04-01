@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -21,6 +22,7 @@ func NewService(store *store, db *sqlx.DB, e *echo.Echo) *echo.Echo {
 
 	e.GET("/user/:id", u.getUser)
 	e.POST("/user/:id", u.saveUser)
+	e.PUT("/user/:id?field={field}&value={value}", u.updateUser)
 
 	return e
 }
@@ -43,15 +45,31 @@ func (s *Service) saveUser(c echo.Context) error {
 		return c.JSON(404, err)
 	}
 	u := &User{}
+	d := &Data{}
 	u.ID = id
-	if err := c.Bind(&u.Data); err != nil {
+	if err := c.Bind(&d); err != nil {
 		return c.JSON(400, err)
 	}
-	fmt.Println(u)
-	err = s.store.SaveUserByID(*u)
+	b, err := json.Marshal(d)
 	if err != nil {
-		fmt.Println("zdes' owibka", err)
+		return c.JSON(500, err)
+	}
+	str := string(b)
+	u.Data = str
+	err = s.store.SaveUserByID(*u, str)
+	if err != nil {
 		return c.JSON(500, err)
 	}
 	return c.JSON(201, u)
+}
+
+func (s *Service) updateUser(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(404, "bad id request")
+	}
+	field := c.QueryParam("field")
+	value := c.QueryParam("value")
+	fmt.Println(id, field, value)
+	return nil
 }

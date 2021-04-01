@@ -9,7 +9,7 @@ type Data struct {
 
 type User struct {
 	ID   int
-	Data Data `db:"data"`
+	Data string `db:"data"`
 }
 
 var Datas []Data
