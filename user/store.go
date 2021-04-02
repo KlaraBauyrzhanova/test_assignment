@@ -3,21 +3,24 @@ package user
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
 
+// store is struct of database
 type store struct {
 	DB *sqlx.DB
 }
 
+// NewStore creates store struct
 func NewStore(db *sqlx.DB) *store {
 	return &store{
 		DB: db,
 	}
 }
 
+// GetUserByID selects user by ID
 func (s *store) GetUserByID(id int) (User, error) {
 	u := User{ID: id}
 	user := &User{}
@@ -31,7 +34,6 @@ func (s *store) GetUserByID(id int) (User, error) {
 	}
 
 	err = row.StructScan(&user)
-	fmt.Println(user)
 	if err != nil {
 		return User{}, err
 	}
@@ -39,6 +41,7 @@ func (s *store) GetUserByID(id int) (User, error) {
 	return *user, nil
 }
 
+// SaveUserByID creates new user by ID
 func (s *store) SaveUserByID(u User, str string) error {
 	_, err := s.DB.NamedExec(`INSERT INTO users(id, data) VALUES(:id, :data)`,
 		map[string]interface{}{
@@ -51,34 +54,65 @@ func (s *store) SaveUserByID(u User, str string) error {
 	return nil
 }
 
-func (s *store) UpdateUserByID(id int, field, value string, user User) error {
+// UpdateUserByID updates user by ID
+func (s *store) UpdateUserByID(id int, field, value string, user User) (User, error) {
 	b := []byte(user.Data)
 	var d Data
 	err := json.Unmarshal(b, &d)
 	if err != nil {
-		return err
+		return User{}, err
 	}
+	v := value[1 : len(value)-1]
 	switch field {
 	case "{first_name}":
-		d.FirstName = value[1 : len(value)-1]
+		d.FirstName = v
 	case "{last_name}":
-		d.LastName = value[1 : len(value)-1]
-	case "{interests}":
-		d.Interests = value[1 : len(value)-1]
+		d.LastName = v
+	case " {interest}":
+		if d.Interests == "" {
+			d.Interests = v
+		} else {
+			d.Interests = d.Interests + "," + v
+		}
+	case "-{interest}":
+		if strings.Contains(d.Interests, v) {
+			if d.Interests == v {
+				d.Interests = ""
+			} else {
+				arr := strings.Split(d.Interests, ",")
+				s := ""
+				for i := 0; i < len(arr); i++ {
+					if arr[i] == v {
+						continue
+					}
+					if i != len(arr) {
+						s += arr[i] + ","
+					}
+				}
+				if len(s) > 0 && s[len(s)-1:] == "," {
+					d.Interests = s[:len(s)-1]
+				}
+			}
+		}
+	default:
+		return User{}, errors.New("no such field")
 	}
 
 	str, err := json.Marshal(d)
 	if err != nil {
-		return err
+		return User{}, err
 	}
-	fmt.Println(string(str))
 	_, err = s.DB.NamedExec(`UPDATE users SET data=:data WHERE id=:id`,
 		map[string]interface{}{
 			"id":   id,
 			"data": string(str),
 		})
 	if err != nil {
-		return err
+		return User{}, err
 	}
-	return nil
+	result := User{
+		ID:   id,
+		Data: string(str),
+	}
+	return result, nil
 }

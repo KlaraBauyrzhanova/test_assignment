@@ -8,11 +8,13 @@ import (
 	"github.com/labstack/echo"
 )
 
+// Service is struct of struct store and database
 type Service struct {
 	store *store
 	db    *sqlx.DB
 }
 
+// NewService creates endpoints
 func NewService(store *store, db *sqlx.DB, e *echo.Echo) *echo.Echo {
 	u := Service{
 		store: store,
@@ -26,6 +28,7 @@ func NewService(store *store, db *sqlx.DB, e *echo.Echo) *echo.Echo {
 	return e
 }
 
+// getUser creates handler for get user
 func (s *Service) getUser(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -33,11 +36,12 @@ func (s *Service) getUser(c echo.Context) error {
 	}
 	result, err := s.store.GetUserByID(id)
 	if err != nil {
-		c.String(500, "failed to get user by ID")
+		c.NoContent(204)
 	}
 	return c.JSON(200, result)
 }
 
+// saveUser creates handler for save User
 func (s *Service) saveUser(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -62,6 +66,7 @@ func (s *Service) saveUser(c echo.Context) error {
 	return c.JSON(201, u)
 }
 
+// updateUser creates handler for update user
 func (s *Service) updateUser(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -69,10 +74,13 @@ func (s *Service) updateUser(c echo.Context) error {
 	}
 	field := c.QueryParam("field")
 	value := c.QueryParam("value")
-	user, _ := s.store.GetUserByID(id)
-	err = s.store.UpdateUserByID(id, field, value, user)
+	user, err := s.store.GetUserByID(id)
 	if err != nil {
-		return c.String(500, "failed to update user by ID")
+		return c.NoContent(204)
 	}
-	return nil
+	result, err := s.store.UpdateUserByID(id, field, value, user)
+	if err != nil {
+		return c.String(400, "failed to update user by ID")
+	}
+	return c.JSON(200, result)
 }
