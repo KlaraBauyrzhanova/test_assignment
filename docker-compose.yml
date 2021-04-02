@@ -1,0 +1,18 @@
+version: "3.3"
+services:
+  postgres:
+    image: "postgres:9.6"
+    container_name: "postgres"
+    restart: "always"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=mypassword
+    hostname: "172.17.0.1"
+  library:
+    image: "bandlab:latest"
+    ports:
+    - "8000:8000"
+    environment: 
+    - LIBRARY_DB=postgres://postgres:mypassword@172.17.0.1:5432/postgres?sslmode=disable
+    - LIBRARY_PORT=8000
