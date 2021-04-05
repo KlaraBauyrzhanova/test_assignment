@@ -3,7 +3,7 @@
 # About
 Create a project - HTTP-service for users DB.
 
-#Installation
+# Installation
 Install docker-machine:
 ```
    curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > /tmp/docker-machine
@@ -18,7 +18,7 @@ Install docker-compose:
   > docker-compose version
 ```
   
-#Usage
+# Usage
 ```
 docker build -t bandlab .
 docker-compose up
