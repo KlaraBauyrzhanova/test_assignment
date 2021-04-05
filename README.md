@@ -19,8 +19,10 @@ Install docker-compose:
 ```
   
 #Usage
-``` docker build -t bandlab .```
-``` docker-compose up```
+```
+docker build -t bandlab .
+docker-compose up
+```
 
 # Requirements
 > Project has [unit-tests](https://golang.org/doc/tutorial/add-a-test) for internal functionality;
