@@ -5,14 +5,18 @@ Create a project - HTTP-service for users DB.
 
 #Installation
 Install docker-machine:
-  > curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > /tmp/docker-machine
-  > # chmod +x /tmp/docker-machine
-  > # cp /tmp/docker-machine /usr/local/bin/docker-machine
-  > docker-machine --version
+```
+   curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > /tmp/docker-machine
+   # chmod +x /tmp/docker-machine
+   # cp /tmp/docker-machine /usr/local/bin/docker-machine
+   docker-machine --version
+```
 Install docker-compose:
+```
   > sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   > sudo chmod +x /usr/local/bin/docker-compose
   > docker-compose version
+```
   
 #Usage
 ``` docker build -t bandlab .```
